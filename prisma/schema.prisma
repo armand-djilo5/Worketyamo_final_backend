@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role{
+  ADMIN
+}
+
+model admin {
+  id          String  @id @default(uuid()) @map("_id")
+  email       String   @unique
+  password    String
+  fullName    String
+  role        Role @default(ADMIN)
+  phone       String?
+  createdAt   DateTime @default(now())
+}
+
+enum RequestType{
+  STAGE
+  FORMATION
+}
+
+enum RequestStatus{
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+}
+
+model offer{
+  id        String @id @default(uuid()) @map("_id")
+  type      RequestType
+  title     String
+  domaine   String
+  description     String
+  duration    String
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+
+  requests    request[]
+}
+
+model request{
+  id   String @id @default(uuid()) @map("_id")
+  offerId    String
+  offer      offer  @relation(fields: [offerId], references: [id], onDelete:Cascade)
+  type       RequestType
+  fullName   String
+  email      String
+  phone      String
+  message    String?
+  cvUrl      String?
+  status     RequestStatus  @default (EN_ATTENTE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  treatedAt   DateTime?
+}
+
+
