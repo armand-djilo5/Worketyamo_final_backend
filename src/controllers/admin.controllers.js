@@ -1,7 +1,7 @@
-import prisma from "../lib/prisma";
-import { v4 as uuid } from 'uuid'
-import HttpCode from "../core/constants";
-import { jwt } from 'jsonwebtoken'
+import prisma from "../lib/prisma.js";
+import { v4 as uuidv4 } from 'uuid'
+import HttpCode from "../core/constants/index.js";
+import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { loginSchema, registerSchema } from "../validators/admin.validators.js";
 import { ZodError } from "zod";
@@ -11,7 +11,7 @@ const generateAccessToken = (admin) => {
         id: admin.id,
         role: admin.role
     },
-        process.env.JWT_ACCESS_TOKEN,
+        process.env.JWT_ACCESS_SECRET,
         { expiresIn: '45m' }
     )
 }
@@ -21,7 +21,7 @@ const generateRefreshToken = (admin) => {
         id: admin.id,
         role: admin.role
     },
-        process.env.JWT_REFRESH_TOKEN,
+        process.env.JWT_REFRESH_SECRET,
         { expiresIn: '7d' }
     )
 }
@@ -31,7 +31,7 @@ export const adminControllers = {
     signup: async (req, res) => {
         try {
             const data = registerSchema.parse(req.body)
-            const { email, password, fullName, role, phone } = req.body
+            const { email, password, fullName, role, phone } = data
 
             if (!email || !password || !fullName || !phone) {
                 return res.status(HttpCode.BAD_REQUEST).json({ message: "Fill all the information recquired" })
@@ -40,8 +40,10 @@ export const adminControllers = {
             const emailExist = await prisma.admin.findUnique({
                 where: { email }
             })
-            if (!emailExist) {
-                return res.status(HttpCode.NOT_FOUND).json({ message: "Email not found" })
+            if (emailExist) {
+                return res.status(HttpCode.CONFLICT).json({
+                    message: "Email already exists"
+                })
             }
 
             const hashPassword = await bcrypt.hash(password, 10)
@@ -49,7 +51,7 @@ export const adminControllers = {
                 data: {
                     id: uuidv4(),
                     email,
-                    password,
+                    password: hashPassword,
                     fullName,
                     phone,
                     role: role || "ADMIN"
@@ -68,21 +70,20 @@ export const adminControllers = {
             })
         } catch (error) {
             if (error instanceof ZodError) {
-                return res.status(HttpCode.BAD_REQUEST).json({ message: error.errors })
+                return res.status(HttpCode.BAD_REQUEST).json({ message: error.issues })
             }
             return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({ message: "SERVER ERROR" })
 
         }
-
     },
 
     login: async (req, res) => {
         try {
-            const data = registerSchema.parse(req.body)
+            const data = loginSchema.parse(req.body)
             const { email, password } = req.body
 
             if (!email || !password) {
-                res.status(HttpCode.BAD_REQUEST).json({ message: "Email or password" })
+                return res.status(HttpCode.BAD_REQUEST).json({ message: "Email or password" })
             }
 
             const admin = await prisma.admin.findUnique({
@@ -112,16 +113,20 @@ export const adminControllers = {
             })
         } catch (error) {
             if (error instanceof ZodError) {
-                return res.status(HttpCode.BAD_REQUEST).json({ message: "error.errors" })
+                return res.status(HttpCode.BAD_REQUEST).json({ message: error.issues })
             }
-            return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({message: "SERVER ERROR"})
-        }
+            return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({ message: "SERVER ERROR" })
 
+        }
     },
 
     logout: async (req, res) => {
         try {
             const { refreshToken } = req.body
+            if (!refreshToken) {
+                return res.status(HttpCode.BAD_REQUEST).json({ message: "Enter your refresh token" })
+            }
+
             const admin = await prisma.admin.findFirst({
                 where: { refreshToken }
             })
@@ -136,32 +141,32 @@ export const adminControllers = {
             })
             return res.status(HttpCode.OK).json({ message: "Logout successfully" })
         } catch (error) {
-            return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({message: "SERVER ERROR"})
+            return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({ message: "SERVER ERROR" })
         }
     },
 
-    refreshToken: async( req , res )=>{
+    refreshToken: async (req, res) => {
         try {
-            const { refreshToken }= req.body
-            if(!refreshToken){
-                return res.status(HttpCode.BAD_REQUEST).json({message: "Enter your refresh token"})
+            const { refreshToken } = req.body
+            if (!refreshToken) {
+                return res.status(HttpCode.BAD_REQUEST).json({ message: "Enter your refresh token" })
             }
 
-            const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_TOKEN)
-            const admin = await prisma.findUnique({
+            const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET)
+            const admin = await prisma.admin.findUnique({
                 where: { id: decoded.id }
             })
 
-            if(!admin || admin.refreshToken !== refreshToken){
-                return res.status(HttpCode.UNAUTHORIZED).json({message: "Refresh token invalid or expired"})
+            if (!admin || admin.refreshToken !== refreshToken) {
+                return res.status(HttpCode.UNAUTHORIZED).json({ message: "Refresh token invalid or expired" })
             }
 
             const newAccessToken = generateAccessToken(admin)
 
-            return res.status(HttpCode.OK).json({ accessToken: newAccessToken})
+            return res.status(HttpCode.OK).json({ accessToken: newAccessToken })
         } catch (error) {
-            return res.status(HttpCode.INTERNAL_SERVER_ERROR).json({message: "SERVER ERROR"})
+            return res.status(HttpCode.UNAUTHORIZED).json({ message: "Refresh token invalid or expired" })
         }
     }
-
 }
+        

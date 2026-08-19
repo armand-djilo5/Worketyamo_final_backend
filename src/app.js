@@ -1,6 +1,7 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { admin_router } from "./routes/admin.routes";
+import { admin_router } from "./routes/admin.routes.js";
+import { offer_router } from "./routes/offers.routes.js";
 
 const app = express()
 
@@ -15,6 +16,8 @@ const limiter = rateLimit({
 app.use(express.json())
 app.use(limiter)
 app.use('/api/admin', admin_router)
+app.use('/api', offer_router )
+
 
 
 

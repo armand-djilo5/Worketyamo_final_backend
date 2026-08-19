@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import { HttpCode } from '../core/constants/index.js'
+import  HttpCode  from '../core/constants/index.js'
 
 const adminMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization
