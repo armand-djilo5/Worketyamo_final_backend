@@ -65,11 +65,11 @@ model request{
   fullName   String
   email      String
   phone      String
-  message    String?
+  message    String
   cvUrl      String?
   status     RequestStatus  @default (EN_ATTENTE)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime  @updatedAt
   treatedAt   DateTime?
 }
 
