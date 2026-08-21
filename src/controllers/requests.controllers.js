@@ -5,6 +5,7 @@ import { createRequestSchema, updateRequestStatusSchema } from '../validators/re
 import { normalizeCmrPhone } from '../utils/phone.utils.js'
 import { buildWhatsappLink } from '../utils/whatsappLink.utils.js'
 import { ZodError } from 'zod'
+import { notifyAdminNewRequest } from '../services/email.services.js'
 
 
 
@@ -38,6 +39,9 @@ export const requestControllers = {
                 },
                 include: { offer: true }
             })
+
+            await notifyAdminNewRequest(request)
+
             return res.status(HttpCode.CREATED).json({
                 message: "Votre candidature a bien ete envoyer. Nous reviendrons vers vous rapidement. "
             })
