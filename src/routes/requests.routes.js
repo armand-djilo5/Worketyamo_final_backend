@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { requestControllers } from '../controllers/requests.controllers.js'
 import adminMiddleware from '../middleware/admin.middleware.js'
+import { upload } from '../middleware/upload.middleware.js'
 
 export const request_router = Router()
 
@@ -12,7 +13,7 @@ const routes = {
     DELETE_REQUEST: '/requests/:id'
 }
 
-request_router.post(routes.CREATE_REQUEST, requestControllers.createRequest)
+request_router.post(routes.CREATE_REQUEST, upload.single('cv'), requestControllers.createRequest)
 request_router.get(routes.GET_REQUEST, adminMiddleware, requestControllers.getRequest)
 request_router.get(routes.GET_REQUEST_BY_ID, adminMiddleware, requestControllers.getRequestById)
 request_router.put(routes.UPDATE_REQUEST, adminMiddleware, requestControllers.updateRequest)

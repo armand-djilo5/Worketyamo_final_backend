@@ -3,6 +3,8 @@ import rateLimit from "express-rate-limit";
 import { admin_router } from "./routes/admin.routes.js";
 import { offer_router } from "./routes/offers.routes.js";
 import { request_router } from "./routes/requests.routes.js";
+import { stats_router } from "./routes/stats.routes.js";
+import cors from 'cors'
 
 const app = express()
 
@@ -19,6 +21,9 @@ app.use(limiter)
 app.use('/api/admin', admin_router)
 app.use('/api', offer_router )
 app.use('/api', request_router)
+app.use('/api', stats_router)
+app.use(cors())
+
 
 
 
