@@ -15,14 +15,14 @@ const limiter = rateLimit({
 })
 
 
-
+app.use(cors())
 app.use(express.json())
 app.use(limiter)
 app.use('/api/admin', admin_router)
 app.use('/api', offer_router )
 app.use('/api', request_router)
 app.use('/api', stats_router)
-app.use(cors())
+
 
 
 
