@@ -15,7 +15,7 @@ const routes = {
 
 offer_router.post(routes.CREATE_OFFER, adminMiddleware, offersControllers.createOffers)
 offer_router.get(routes.GET_OFFER, offersControllers.getOffers)
-offer_router.get(routes.GET_OFFER_BY_ID, adminMiddleware, offersControllers.getOffersById)
+offer_router.get(routes.GET_OFFER_BY_ID, offersControllers.getOffersById)
 offer_router.get(routes.GET_OFFER_BY_ADMIN, adminMiddleware, offersControllers.getOffersByAdmin)
 offer_router.put(routes.UPDATE_OFFER, adminMiddleware, offersControllers.updateOffer)
 offer_router.delete(routes.DELETE_OFFER, adminMiddleware, offersControllers.deleteOffer)
