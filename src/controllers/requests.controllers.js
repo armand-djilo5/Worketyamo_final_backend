@@ -40,7 +40,7 @@ export const requestControllers = {
                 include: { offer: true }
             })
 
-            await notifyAdminNewRequest(request)
+            notifyAdminNewRequest(request)
 
             return res.status(HttpCode.CREATED).json({
                 message: "Votre candidature a bien ete envoyer. Nous reviendrons vers vous rapidement. "
