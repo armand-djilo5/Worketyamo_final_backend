@@ -17,6 +17,12 @@ const limiter = rateLimit({
 
 app.use(cors())
 app.use(express.json())
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+
 app.use(limiter)
 app.use('/api/admin', admin_router)
 app.use('/api', offer_router )
